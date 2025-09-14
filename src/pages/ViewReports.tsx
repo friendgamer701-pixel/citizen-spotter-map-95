@@ -81,6 +81,8 @@ const ViewReports: React.FC = () => {
                   <Badge variant={report.status === 'resolved' ? 'success' : 'outline'}>{report.status}</Badge>
                 </div>
                 {report.location_name && <p className="text-sm text-gray-500"><span className="font-semibold">Location:</span> {report.location_name}</p>}
+                {report.street_address && <p className="text-sm text-gray-500"><span className="font-semibold">Street Address:</span> {report.street_address}</p>}
+                {report.landmark && <p className="text-sm text-gray-500"><span className="font-semibold">Landmark:</span> {report.landmark}</p>}
               </CardContent>
             </Card>
           ))}
