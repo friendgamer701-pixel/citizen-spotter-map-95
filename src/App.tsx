@@ -9,6 +9,7 @@ import AdminAuth from "./pages/AdminAuth";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ViewReports from "./pages/ViewReports";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+            <Route path="/view-reports" element={<ViewReports />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
