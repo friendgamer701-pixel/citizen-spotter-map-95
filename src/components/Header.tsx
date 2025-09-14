@@ -2,21 +2,31 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MapPin, Menu, X } from "lucide-react";
 import { ReportModal } from "./ReportModal";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    element?.scrollIntoView({ behavior: "smooth" });
     setIsMenuOpen(false);
+    if (location.pathname === "/") {
+      const element = document.getElementById(sectionId);
+      element?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      navigate(`/#${sectionId}`);
+    }
   };
 
   const handleAdminAccess = () => {
     navigate("/admin-login");
+  };
+
+  const handleViewReports = () => {
+    setIsMenuOpen(false);
+    navigate("/view-reports");
   };
 
   return (
@@ -24,10 +34,10 @@ export const Header = () => {
       <header className="fixed top-0 left-0 right-0 z-50 glass-surface shadow-md">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <a href="#" className="text-2xl font-bold text-primary flex items-center gap-2">
+            <Link to="/" className="text-2xl font-bold text-primary flex items-center gap-2">
               <MapPin className="w-6 h-6" />
               CivicLink
-            </a>
+            </Link>
             
             <nav className="hidden md:flex items-center space-x-8">
               <button
@@ -35,6 +45,12 @@ export const Header = () => {
                 className="text-muted-foreground hover:text-primary transition-smooth"
               >
                 How It Works
+              </button>
+              <button
+                onClick={handleViewReports}
+                className="text-muted-foreground hover:text-primary transition-smooth"
+              >
+                View Reports
               </button>
               <button
                 onClick={() => scrollToSection("features")}
@@ -82,6 +98,12 @@ export const Header = () => {
                 className="block w-full text-left py-2 text-muted-foreground hover:text-primary transition-smooth"
               >
                 How It Works
+              </button>
+              <button
+                onClick={handleViewReports}
+                className="block w-full text-left py-2 text-muted-foreground hover:text-primary transition-smooth"
+              >
+                View Reports
               </button>
               <button
                 onClick={() => scrollToSection("features")}
