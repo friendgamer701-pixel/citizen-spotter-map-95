@@ -32,6 +32,8 @@ export const ReportModal = ({ isOpen, onClose }: ReportModalProps) => {
   const [photo, setPhoto] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [title, setTitle] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
+  const [landmark, setLandmark] = useState("");
   const [location, setLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
   const { toast } = useToast();
 
@@ -121,11 +123,14 @@ export const ReportModal = ({ isOpen, onClose }: ReportModalProps) => {
           title,
           category,
           description,
+          
           latitude: location.lat,
           longitude: location.lng,
           location_name: location.name,
           image_url: imageUrl,
-          status: 'new'
+          status: 'new',
+          street_address: streetAddress,
+          landmark,
         });
 
       if (insertError) {
@@ -141,6 +146,8 @@ export const ReportModal = ({ isOpen, onClose }: ReportModalProps) => {
       setTitle("");
       setCategory("");
       setDescription("");
+      setStreetAddress("");
+      setLandmark("");
       setPhoto(null);
       setLocation(null);
       setIsSubmitting(false);
@@ -274,6 +281,30 @@ export const ReportModal = ({ isOpen, onClose }: ReportModalProps) => {
             <p className="text-xs text-muted-foreground">
               Your current location will be automatically included with the report.
             </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="streetAddress" className="text-sm font-medium">
+              Street Address
+            </Label>
+            <Input
+              id="streetAddress"
+              value={streetAddress}
+              onChange={(e) => setStreetAddress(e.target.value)}
+              placeholder="e.g., 123 Main St"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="landmark" className="text-sm font-medium">
+              Landmark
+            </Label>
+            <Input
+              id="landmark"
+              value={landmark}
+              onChange={(e) => setLandmark(e.target.value)}
+              placeholder="e.g., Near the park"
+            />
           </div>
 
           <div className="flex gap-3 pt-4">
