@@ -173,7 +173,7 @@ export const ReportModal = ({ isOpen, onClose }: ReportModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Report a New Issue</DialogTitle>
         </DialogHeader>
