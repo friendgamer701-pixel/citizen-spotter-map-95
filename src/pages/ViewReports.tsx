@@ -78,7 +78,7 @@ const ViewReports: React.FC = () => {
                 <p className="text-gray-600 mb-4">{report.description}</p>
                 <div className="flex flex-wrap gap-2 mb-4">
                   <Badge variant="secondary">{report.category}</Badge>
-                  <Badge variant={report.status === 'resolved' ? 'success' : 'outline'}>{report.status}</Badge>
+                  <Badge variant={report.status === 'resolved' ? 'secondary' : 'outline'}>{report.status}</Badge>
                 </div>
                 {report.location_name && <p className="text-sm text-gray-500"><span className="font-semibold">Location:</span> {report.location_name}</p>}
                 {report.street_address && <p className="text-sm text-gray-500"><span className="font-semibold">Street Address:</span> {report.street_address}</p>}

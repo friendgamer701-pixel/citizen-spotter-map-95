@@ -17,17 +17,16 @@ export const useAdminRole = () => {
 
       try {
         const { data, error } = await supabase
-          .from('user_roles')
+          .from('profiles')
           .select('role')
-          .eq('user_id', user.id)
-          .eq('role', 'admin')
-          .single();
+          .eq('id', user.id)
+          .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') {
+        if (error) {
           console.error('Error checking admin role:', error);
           setIsAdmin(false);
         } else {
-          setIsAdmin(!!data);
+          setIsAdmin(data?.role === 'admin');
         }
       } catch (error) {
         console.error('Error:', error);
