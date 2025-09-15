@@ -21,10 +21,12 @@ export type Database = {
           description: string
           id: number
           image_url: string | null
+          landmark: string | null
           latitude: number
           location_name: string | null
           longitude: number
           status: string
+          street_address: string | null
           title: string
         }
         Insert: {
@@ -33,10 +35,12 @@ export type Database = {
           description: string
           id?: number
           image_url?: string | null
+          landmark?: string | null
           latitude: number
           location_name?: string | null
           longitude: number
           status?: string
+          street_address?: string | null
           title: string
         }
         Update: {
@@ -45,32 +49,28 @@ export type Database = {
           description?: string
           id?: number
           image_url?: string | null
+          landmark?: string | null
           latitude?: number
           location_name?: string | null
           longitude?: number
           status?: string
+          street_address?: string | null
           title?: string
         }
         Relationships: []
       }
-      user_roles: {
+      profiles: {
         Row: {
-          created_at: string
           id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
+          role: string | null
         }
         Insert: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id: string
+          id: string
+          role?: string | null
         }
         Update: {
-          created_at?: string
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
+          role?: string | null
         }
         Relationships: []
       }
@@ -88,6 +88,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
     }
