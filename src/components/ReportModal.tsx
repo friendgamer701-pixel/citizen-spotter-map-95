@@ -154,7 +154,7 @@ export const ReportModal = ({ isOpen, onClose }: ReportModalProps) => {
       onClose();
       
     } catch (error) {
-      console.error('Error submitting report:', error);
+      console.error('Error submitting report:', error); 
       toast({
         title: "Submission Failed",
         description: "There was an error submitting your report. Please try again.",
@@ -173,7 +173,7 @@ export const ReportModal = ({ isOpen, onClose }: ReportModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto z-50">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Report a New Issue</DialogTitle>
         </DialogHeader>
