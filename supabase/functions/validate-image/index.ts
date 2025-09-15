@@ -8,6 +8,43 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function to sleep for retry logic
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Retry function with exponential backoff
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> {
+  let lastError: Error;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+      
+      if (attempt === maxRetries) {
+        throw lastError;
+      }
+      
+      // Check if it's a 503 error (service overloaded)
+      if (error instanceof Error && error.message.includes('503')) {
+        const delay = baseDelay * Math.pow(2, attempt);
+        console.log(`Gemini API overloaded, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries + 1})`);
+        await sleep(delay);
+        continue;
+      }
+      
+      // For non-503 errors, don't retry
+      throw error;
+    }
+  }
+  
+  throw lastError!;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -71,22 +108,27 @@ serve(async (req) => {
 
     console.log('Sending request to Gemini API for image validation');
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      }
-    );
+    // Use retry logic for API calls
+    const response = await retryWithBackoff(async () => {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      throw new Error(`Gemini API error: ${response.status}`);
-    }
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Gemini API error:', res.status, errorText);
+        throw new Error(`${res.status}`);
+      }
+
+      return res;
+    }, 3, 2000); // 3 retries with 2 second base delay
 
     const data = await response.json();
     console.log('Gemini API response received');
@@ -137,13 +179,33 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in validate-image function:', error);
+    
+    // Handle specific API overload errors with better user messaging
+    if (error instanceof Error && error.message.includes('503')) {
+      return new Response(
+        JSON.stringify({ 
+          isValid: true, // Allow image to pass through when service is unavailable
+          reason: 'AI validation service is temporarily unavailable. Image uploaded without AI validation.',
+          confidence: 50,
+          fallback: true
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    // For other errors, still allow the image but with a warning
     return new Response(
       JSON.stringify({ 
-        error: 'Failed to validate image',
-        details: error.message 
+        isValid: true, // Allow image to pass through
+        reason: 'AI validation temporarily unavailable. Please ensure your image shows a civic issue.',
+        confidence: 50,
+        fallback: true
       }),
       { 
-        status: 500, 
+        status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );

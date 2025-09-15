@@ -202,6 +202,15 @@ export const ReportModal = ({ isOpen, onClose }: ReportModalProps) => {
         return false;
       }
 
+      // Handle fallback cases when AI service is unavailable
+      if (data.fallback) {
+        toast({
+          title: "Validation Service Unavailable",
+          description: data.reason,
+        });
+        return true; // Allow image to proceed
+      }
+
       if (data.confidence < 70) {
         toast({
           title: "Image Validation",
