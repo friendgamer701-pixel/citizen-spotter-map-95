@@ -31,6 +31,7 @@ export const ReportModal = ({ isOpen, onClose }: ReportModalProps) => {
   const [description, setDescription] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isValidatingImage, setIsValidatingImage] = useState(false);
   const [title, setTitle] = useState("");
   const [streetAddress, setStreetAddress] = useState("");
   const [landmark, setLandmark] = useState("");
@@ -164,9 +165,89 @@ export const ReportModal = ({ isOpen, onClose }: ReportModalProps) => {
     }
   };
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const validateImageWithAI = async (file: File): Promise<boolean> => {
+    try {
+      setIsValidatingImage(true);
+      
+      // Convert file to base64
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+
+      const { data, error } = await supabase.functions.invoke('validate-image', {
+        body: {
+          imageBase64: base64,
+          imageType: file.type
+        }
+      });
+
+      if (error) {
+        console.error('Image validation error:', error);
+        toast({
+          title: "Validation Error",
+          description: "Failed to validate image. Please try again.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (!data.isValid) {
+        toast({
+          title: "Invalid Image",
+          description: `Image validation failed: ${data.reason}`,
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (data.confidence < 70) {
+        toast({
+          title: "Image Validation",
+          description: `Image validated with low confidence. ${data.reason}`,
+        });
+      } else {
+        toast({
+          title: "Image Validated",
+          description: "Image validated successfully!",
+        });
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Image validation error:', error);
+      toast({
+        title: "Validation Error",
+        description: "Failed to validate image. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsValidatingImage(false);
+    }
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        toast({
+          title: "File Too Large",
+          description: "Image size must be less than 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate image with AI
+      const isValid = await validateImageWithAI(file);
+      if (!isValid) {
+        // Clear the input if validation failed
+        e.target.value = '';
+        return;
+      }
+      
       setPhoto(file);
     }
   };
@@ -235,8 +316,9 @@ export const ReportModal = ({ isOpen, onClose }: ReportModalProps) => {
                 accept="image/*"
                 onChange={handlePhotoChange}
                 className="hidden"
+                disabled={isValidatingImage}
               />
-              <label htmlFor="photo" className="cursor-pointer">
+              <label htmlFor="photo" className={`cursor-pointer ${isValidatingImage ? 'opacity-50 cursor-not-allowed' : ''}`}>
                 {photo ? (
                   <div className="space-y-2">
                     <div className="text-sm text-muted-foreground">
@@ -257,7 +339,7 @@ export const ReportModal = ({ isOpen, onClose }: ReportModalProps) => {
                   <div className="space-y-2">
                     <Upload className="w-8 h-8 text-muted-foreground mx-auto" />
                     <div className="text-sm text-muted-foreground">
-                      Click to upload a photo
+                      {isValidatingImage ? "Validating image with AI..." : "Click to upload a photo"}
                     </div>
                   </div>
                 )}
@@ -320,9 +402,9 @@ export const ReportModal = ({ isOpen, onClose }: ReportModalProps) => {
             <Button
               type="submit"
               className="flex-1 gradient-primary"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isValidatingImage}
             >
-              {isSubmitting ? "Submitting..." : "Submit Report"}
+              {isSubmitting ? "Submitting..." : isValidatingImage ? "Validating..." : "Submit Report"}
             </Button>
           </div>
         </form>
