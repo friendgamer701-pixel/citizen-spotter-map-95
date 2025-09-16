@@ -14,50 +14,108 @@ export type Database = {
   }
   public: {
     Tables: {
+      issue_upvotes: {
+        Row: {
+          created_at: string
+          id: string
+          issue_id: number
+          user_ip: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          issue_id: number
+          user_ip: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          issue_id?: number
+          user_ip?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issue_upvotes_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "issues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       issues: {
         Row: {
+          assigned_to: string | null
           category: string
           created_at: string
           description: string
+          duplicate_of: number | null
           id: number
           image_url: string | null
+          is_spam: boolean | null
           landmark: string | null
           latitude: number
           location_name: string | null
           longitude: number
+          priority_score: number | null
+          public_notes: string | null
+          response_time: unknown | null
           status: string
           street_address: string | null
           title: string
+          upvotes_count: number | null
         }
         Insert: {
+          assigned_to?: string | null
           category: string
           created_at?: string
           description: string
+          duplicate_of?: number | null
           id?: number
           image_url?: string | null
+          is_spam?: boolean | null
           landmark?: string | null
           latitude: number
           location_name?: string | null
           longitude: number
+          priority_score?: number | null
+          public_notes?: string | null
+          response_time?: unknown | null
           status?: string
           street_address?: string | null
           title: string
+          upvotes_count?: number | null
         }
         Update: {
+          assigned_to?: string | null
           category?: string
           created_at?: string
           description?: string
+          duplicate_of?: number | null
           id?: number
           image_url?: string | null
+          is_spam?: boolean | null
           landmark?: string | null
           latitude?: number
           location_name?: string | null
           longitude?: number
+          priority_score?: number | null
+          public_notes?: string | null
+          response_time?: unknown | null
           status?: string
           street_address?: string | null
           title?: string
+          upvotes_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "issues_duplicate_of_fkey"
+            columns: ["duplicate_of"]
+            isOneToOne: false
+            referencedRelation: "issues"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -79,6 +137,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      find_similar_issues: {
+        Args: {
+          input_category: string
+          input_description: string
+          input_title: string
+          similarity_threshold?: number
+        }
+        Returns: {
+          issue_id: number
+          similarity_score: number
+          title: string
+        }[]
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["app_role"]
