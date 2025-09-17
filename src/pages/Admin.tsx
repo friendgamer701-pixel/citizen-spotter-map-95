@@ -384,17 +384,128 @@ const AdminDashboard = () => {
   return (
     <>
       <div className="flex min-h-screen w-full bg-muted/40">
-        <aside className="hidden w-60 flex-col border-r bg-background p-4 sm:flex">
-          <div className="mb-8 flex items-center gap-2">
+        <aside className="hidden w-80 flex-col border-r bg-background p-4 sm:flex">
+          {/* Header */}
+          <div className="mb-6 flex items-center gap-2">
             <BarChart2 className="h-6 w-6 text-primary" />
-            <h2 className="text-xl font-bold">CivicLink Admin</h2>
+            <h2 className="text-xl font-bold">CivicLink</h2>
           </div>
-          <nav className="flex flex-col gap-2">
-            <Button variant="secondary" className="justify-start gap-2">
-              <List className="h-4 w-4" />
-              <span>All Issues ({totalIssues})</span>
-            </Button>
-          </nav>
+          
+          {/* Main Navigation */}
+          <div className="mb-6">
+            <p className="text-sm font-medium text-muted-foreground mb-3">Main</p>
+            <nav className="flex flex-col gap-1">
+              <Button variant="secondary" className="justify-start gap-2 w-full">
+                <List className="h-4 w-4" />
+                <span>Dashboard</span>
+              </Button>
+              <Button variant="ghost" className="justify-start gap-2 w-full">
+                <Archive className="h-4 w-4" />
+                <span>All Reports ({totalIssues})</span>
+              </Button>
+              <Button variant="ghost" className="justify-start gap-2 w-full">
+                <TrendingUp className="h-4 w-4" />
+                <span>Analytics</span>
+              </Button>
+            </nav>
+          </div>
+
+          {/* Filters & Search Section */}
+          <div className="mb-6">
+            <p className="text-sm font-medium text-muted-foreground mb-3">Filters & Search</p>
+            <div className="space-y-3">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search issues..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8 h-8"
+                />
+              </div>
+              
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-8">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="new">New</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="resolved">Resolved</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="h-8">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="priority">Priority</SelectItem>
+                  <SelectItem value="upvotes">Most Upvoted</SelectItem>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="oldest">Oldest First</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="showSpam"
+                  checked={showSpam}
+                  onChange={(e) => setShowSpam(e.target.checked)}
+                  className="rounded"
+                />
+                <label htmlFor="showSpam" className="text-sm">Show Spam</label>
+              </div>
+
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("all");
+                  setCategoryFilter("all");
+                  setShowSpam(false);
+                  setSortBy("priority");
+                }}
+              >
+                Clear Filters
+              </Button>
+            </div>
+          </div>
+
+          {/* Issues by Category Section */}
+          <div className="mb-6 flex-1">
+            <p className="text-sm font-medium text-muted-foreground mb-3">Issues by Category</p>
+            <div className="space-y-1">
+              <Button 
+                variant={categoryFilter === "all" ? "secondary" : "ghost"} 
+                className="justify-between w-full text-sm h-8"
+                onClick={() => setCategoryFilter("all")}
+              >
+                <span>All Categories</span>
+                <Badge variant="outline" className="ml-2">{totalIssues}</Badge>
+              </Button>
+              {uniqueCategories.map(category => {
+                const categoryCount = issues.filter(i => i.category === category && !i.is_spam).length;
+                return (
+                  <Button 
+                    key={category}
+                    variant={categoryFilter === category ? "secondary" : "ghost"} 
+                    className="justify-between w-full text-sm h-8"
+                    onClick={() => setCategoryFilter(category)}
+                  >
+                    <span className="truncate">{category}</span>
+                    <Badge variant="outline" className="ml-2">{categoryCount}</Badge>
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Logout */}
           <div className="mt-auto">
             <Button 
               variant="ghost" 
@@ -490,88 +601,6 @@ const AdminDashboard = () => {
             </Card>
           </div>
 
-          {/* Filters and Search */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Filters & Search
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-6">
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search issues..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8"
-                  />
-                </div>
-                
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="new">New</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {uniqueCategories.map(category => (
-                      <SelectItem key={category} value={category}>{category}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="priority">Priority</SelectItem>
-                    <SelectItem value="upvotes">Most Upvoted</SelectItem>
-                    <SelectItem value="newest">Newest First</SelectItem>
-                    <SelectItem value="oldest">Oldest First</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="showSpam"
-                    checked={showSpam}
-                    onChange={(e) => setShowSpam(e.target.checked)}
-                    className="rounded"
-                  />
-                  <label htmlFor="showSpam" className="text-sm">Show Spam</label>
-                </div>
-
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setSearchTerm("");
-                    setStatusFilter("all");
-                    setCategoryFilter("all");
-                    setShowSpam(false);
-                    setSortBy("priority");
-                  }}
-                >
-                  Clear Filters
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Analytics Charts */}
           <div className="grid gap-6 md:grid-cols-2 mb-6">
