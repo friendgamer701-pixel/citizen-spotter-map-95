@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ViewReports from "./pages/ViewReports";
+import IssuesManagement from "./pages/IssuesManagement";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Admin />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/issues" 
+              element={
+                <ProtectedRoute>
+                  <IssuesManagement />
                 </ProtectedRoute>
               } 
             />

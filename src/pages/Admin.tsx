@@ -399,7 +399,11 @@ const AdminDashboard = () => {
                 <List className="h-4 w-4" />
                 <span>Dashboard</span>
               </Button>
-              <Button variant="ghost" className="justify-start gap-2 w-full">
+              <Button 
+                variant="ghost" 
+                className="justify-start gap-2 w-full"
+                onClick={() => navigate('/admin/issues')}
+              >
                 <Archive className="h-4 w-4" />
                 <span>All Reports ({totalIssues})</span>
               </Button>
