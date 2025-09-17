@@ -1,157 +1,165 @@
-import React, { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Header } from "@/components/Header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import React, { useState } from "react";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator 
+} from "@/components/ui/dropdown-menu";
+import { 
+  Sidebar, 
+  SidebarProvider, 
+  SidebarMenu, 
+  SidebarMenuItem, 
+  SidebarMenuButton, 
+  SidebarInset,
+  SidebarHeader,
+  SidebarFooter,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarTrigger,
+  useSidebar
+} from "@/components/ui/sidebar";
+import { Home, List, BarChart3, LogOut, Shield, Settings, User as UserIcon, Activity } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DashboardOverview } from "@/components/DashboardOverview";
+import { IssuesManager } from "@/components/IssuesManager";
+import { ReportsManager } from "@/components/ReportsManager";
 
-const AdminDashboard: React.FC = () => {
-  const [reports, setReports] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+type ActiveView = 'dashboard' | 'all-reports' | 'analytics';
 
-  useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("issues")
-          .select("*")
-          .order("created_at", { ascending: false });
+const AdminDashboardContent: React.FC = () => {
+  const [activeView, setActiveView] = useState<ActiveView>('dashboard');
+  const { setOpenMobile, isMobile } = useSidebar();
 
-        if (error) {
-          throw error;
-        }
-        setReports(data);
-      } catch (error: any) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleViewChange = (view: ActiveView) => {
+    setActiveView(view);
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
-    fetchReports();
-  }, []);
-
-  const handleStatusChange = async (reportId: number, newStatus: string) => {
-    const originalReports = [...reports];
-    const newReports = reports.map(report => 
-      report.id === reportId ? { ...report, status: newStatus } : report
-    );
-
-    setReports(newReports);
-
-    try {
-      const { data, error } = await supabase
-        .from("issues")
-        .update({ status: newStatus })
-        .eq("id", reportId)
-        .select();
-
-      if (error) {
-        throw error;
-      }
-
-      if (!data || data.length === 0) {
-        console.error("Supabase update did not return data. RLS policy might be blocking the update.");
-        throw new Error("Failed to update report in the database. Please check your permissions.");
-      }
-
-      toast.success("Report status updated successfully");
-
-    } catch (error: any) {
-      setReports(originalReports);
-      toast.error("Failed to update report status", {
-        description: error.message,
-      });
+  const renderActiveView = () => {
+    switch (activeView) {
+      case 'dashboard':
+        return <DashboardOverview />;
+      case 'all-reports':
+        return <IssuesManager />;
+      case 'analytics':
+        return <ReportsManager />;
+      default:
+        return <DashboardOverview />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="pt-24">
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-4xl font-extrabold mb-8 text-center text-gray-800">Admin Dashboard</h1>
-
-          {loading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <Card key={index} className="shadow-lg">
-                  <CardHeader>
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-4 w-1/2 mt-2" />
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-20 w-full" />
-                    <div className="flex justify-between items-center mt-4">
-                      <Skeleton className="h-6 w-24" />
-                      <Skeleton className="h-8 w-8 rounded-full" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+    <>
+      <Sidebar variant="inset" collapsible="icon">
+        <SidebarHeader>
+          <div className="flex items-center gap-2">
+            <Shield className="w-6 h-6 text-primary" />
+            <span className="text-lg font-semibold">CivicLink</span>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Main</SidebarGroupLabel>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton tooltip="Dashboard" isActive={activeView === 'dashboard'} onClick={() => handleViewChange('dashboard')}>
+                  <Home className="w-4 h-4" />
+                  Dashboard
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton tooltip="All Reports" isActive={activeView === 'all-reports'} onClick={() => handleViewChange('all-reports')}>
+                  <List className="w-4 h-4" />
+                  All Reports
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton tooltip="Analytics" isActive={activeView === 'analytics'} onClick={() => handleViewChange('analytics')}>
+                  <BarChart3 className="w-4 h-4" />
+                  Analytics
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-2 cursor-pointer p-2 rounded-md hover:bg-muted">
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                  <AvatarFallback>AD</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">Admin User</span>
+                  <span className="text-xs text-muted-foreground">admin@civiclink.com</span>
+                </div>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56 mb-2" side="top" align="start">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <UserIcon className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset>
+        <header className="sticky top-0 z-10 flex items-center gap-4 border-b bg-background px-4 py-3 sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+          <SidebarTrigger className="sm:hidden" />
+          <div className="flex w-full items-center justify-between">
+            <div className="flex items-center gap-3">
+                <Activity className="h-6 w-6 text-primary" />
+                <div className="flex flex-col justify-center">
+                    <h1 className="text-lg font-semibold sm:text-xl leading-none">
+                        <span className="sm:hidden">Dashboard</span>
+                        <span className="hidden sm:inline">Admin Dashboard</span>
+                    </h1>
+                    <p className="text-xs text-muted-foreground hidden sm:block">
+                        Real-time civic issue management & transparency
+                    </p>
+                </div>
             </div>
-          )}
-
-          {error && (
-            <div className="text-center py-12">
-              <p className="text-red-500 text-lg font-semibold">Failed to load reports: {error}</p>
+            <div className="flex items-center gap-2">
+                <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                <span className="hidden text-sm text-muted-foreground sm:inline">Live Updates</span>
             </div>
-          )}
+          </div>
+        </header>
+        <main className="p-4 sm:px-6 sm:py-0">
+          {renderActiveView()}
+        </main>
+      </SidebarInset>
+    </>
+  );
+}
 
-          {!loading && !error && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {reports.map((report) => (
-                <Card key={report.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
-                  {report.image_url && (
-                    <div className="w-full h-48 overflow-hidden">
-                      <img src={report.image_url} alt={report.title} className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-xl font-bold text-gray-800 truncate">{report.title}</CardTitle>
-                    <p className="text-sm text-gray-500 pt-1">{new Date(report.created_at).toLocaleString()}</p>
-                  </CardHeader>
-                  <CardContent className="flex-grow flex flex-col justify-between">
-                    <div>
-                      <p className="text-gray-600 mb-4">{report.description}</p>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <Badge variant="secondary">{report.category}</Badge>
-                        <Badge variant={report.status === 'resolved' ? 'success' : 'outline'}>{report.status}</Badge>
-                      </div>
-                      {report.location_name && <p className="text-sm text-gray-500"><span className="font-semibold">Location:</span> {report.location_name}</p>}
-                      {report.street_address && <p className="text-sm text-gray-500"><span className="font-semibold">Street Address:</span> {report.street_address}</p>}
-                      {report.landmark && <p className="text-sm text-gray-500"><span className="font-semibold">Landmark:</span> {report.landmark}</p>}
-                    </div>
-                    <div className="mt-4">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline">Change Status</Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => handleStatusChange(report.id, 'pending')}>Pending</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleStatusChange(report.id, 'in-progress')}>In Progress</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleStatusChange(report.id, 'resolved')}>Resolved</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {!loading && !error && reports.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No reports have been submitted yet.</p>
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
+const AdminDashboard: React.FC = () => {
+  return (
+    <SidebarProvider defaultOpen={true}>
+      <AdminDashboardContent />
+    </SidebarProvider>
   );
 };
 
