@@ -25,10 +25,25 @@ import {
 import { Home, List, BarChart3, LogOut, Shield, Settings, User as UserIcon, Activity } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DashboardOverview } from "@/components/DashboardOverview";
-import { IssuesManager } from "@/components/IssuesManager";
+import IssuesManagement from "@/components/IssuesManagement";
 import { ReportsManager } from "@/components/ReportsManager";
 
 type ActiveView = 'dashboard' | 'all-reports' | 'analytics';
+
+const viewConfig = {
+  dashboard: {
+    title: "Admin Dashboard",
+    subtitle: "Real-time civic issue management & transparency"
+  },
+  'all-reports': {
+    title: "Issues Management",
+    subtitle: "Comprehensive issue tracking and management system"
+  },
+  analytics: {
+    title: "Analytics",
+    subtitle: "Insights into civic engagement and issue resolution"
+  }
+};
 
 const AdminDashboardContent: React.FC = () => {
   const [activeView, setActiveView] = useState<ActiveView>('dashboard');
@@ -46,13 +61,15 @@ const AdminDashboardContent: React.FC = () => {
       case 'dashboard':
         return <DashboardOverview />;
       case 'all-reports':
-        return <IssuesManager />;
+        return <IssuesManagement />;
       case 'analytics':
         return <ReportsManager />;
       default:
         return <DashboardOverview />;
     }
   };
+
+  const currentView = viewConfig[activeView];
 
   return (
     <>
@@ -127,14 +144,14 @@ const AdminDashboardContent: React.FC = () => {
           <SidebarTrigger className="sm:hidden" />
           <div className="flex w-full items-center justify-between">
             <div className="flex items-center gap-3">
-                <Activity className="h-6 w-6 text-primary" />
+                <Activity className="h-6 h-6 text-primary" />
                 <div className="flex flex-col justify-center">
                     <h1 className="text-lg font-semibold sm:text-xl leading-none">
-                        <span className="sm:hidden">Dashboard</span>
-                        <span className="hidden sm:inline">Admin Dashboard</span>
+                        <span className="sm:hidden">{currentView.title}</span>
+                        <span className="hidden sm:inline">{currentView.title}</span>
                     </h1>
                     <p className="text-xs text-muted-foreground hidden sm:block">
-                        Real-time civic issue management & transparency
+                        {currentView.subtitle}
                     </p>
                 </div>
             </div>
