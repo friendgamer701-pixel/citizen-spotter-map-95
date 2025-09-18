@@ -11,6 +11,8 @@ import ViewReports from "./pages/ViewReports";
 import AdminAuth from "./pages/AdminAuth";
 import Admin from "./pages/Admin";
 import ProtectedRoute from "@/components/ProtectedRoute.tsx";
+import IssuesManagement from "./pages/IssuesManagement";
+import Analytics from "./pages/Analytics";
 
 const queryClient = new QueryClient();
 
@@ -26,19 +28,36 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/view-reports" element={<ViewReports />} />
               <Route path="/admin-login" element={<AdminAuth />} />
-              <Route
-                path="/admin"
-                element={(
-                  <ProtectedRoute>
-                    <Admin />
-                  </ProtectedRoute>
-                )}
-              />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+              <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute>
+                  <Admin />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/issues" 
+              element={
+                <ProtectedRoute>
+                  <IssuesManagement />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/analytics" 
+              element={
+                <ProtectedRoute>
+                  <Analytics />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="/view-reports" element={<ViewReports />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
       </AdminProvider>
     </AuthProvider>
   </QueryClientProvider>
